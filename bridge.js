@@ -1,5 +1,5 @@
-import { TestNetWallet, Wallet, TokenSendRequest } from "mainnet-js";
-import { bigIntToVmNumber, binToHex } from '@bitauth/libauth';
+import { TestNetWallet, Wallet, TokenMintRequest } from "mainnet-js";
+import { bigIntToVmNumber, binToHex, hexToBin } from '@bitauth/libauth';
 import 'dotenv/config'
 
 const tokenId = process.env.TOKENID;
@@ -15,21 +15,29 @@ const balance = await wallet.getBalance();
 console.log(`wallet address: ${walletAddress}`);
 console.log(`Bch amount in walletAddress is ${balance.bch}bch or ${balance.sat}sats`);
 
-if(false){
+
+async function bridgeNFTs(listNftNumbers, destinationAddress, sbchTxid){
   if(balance.sat < 1000) throw new Error("Not enough BCH to make the transaction!");
 
-  const destinationAddress = "";
-  const nftNumber = 0;
-  const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
-  const nftCommitment = binToHex(vmNumber);
+  // list outputs for bridging tx
+  const outputs = [];
 
-  const { txId } = await wallet.send([
-    new TokenSendRequest({
+  listNftNumbers.forEach(nftNumber => {
+    const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
+    const nftCommitment = binToHex(vmNumber);
+    const mintNftOutput = new TokenMintRequest({
       cashaddr: destinationAddress,
-      tokenId: tokenId,
       commitment: nftCommitment,
-      capability: "none"
+      capability: NFTCapability.none,
+      value: 1000,
     })
-  ]);
+    outputs.push(mintNftOutput);
+  })
+
+  const sbchTxidBin = hexToBin(sbchTxid);
+  const opReturn = Buffer.from(sbchTxidBin);
+  outputs.push(opReturn);
+
+  const { txId } = await wallet.send(outputs);
   console.log(txId)
 }
