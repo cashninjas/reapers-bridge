@@ -1,6 +1,7 @@
 import { TestNetWallet, Wallet, TokenMintRequest } from "mainnet-js";
 import { bigIntToVmNumber, binToHex, hexToBin } from '@bitauth/libauth';
-import { JsonRpcProvider } from "ethers";
+import { JsonRpcProvider, formatEther, ethers } from "ethers";
+import abi from "./abi.json" assert { type: 'json' }
 import 'dotenv/config'
 
 const tokenId = process.env.TOKENID;
@@ -10,6 +11,8 @@ const seedphrase = process.env.SEEDPHRASE;
 
 // initialize SBCH network provider
 let provider = new JsonRpcProvider('https://smartbch.greyh.at');
+// initilize reapers contract
+const reapersContract = new ethers.Contract(contractAddress, abi, provider);
 
 // mainnet-js generates m/44'/0'/0'/0/0 by default so have to switch it
 const walletClass = network == "mainnet" ? Wallet : TestNetWallet;
@@ -19,6 +22,11 @@ const balance = await wallet.getBalance();
 console.log(`wallet address: ${walletAddress}`);
 console.log(`Bch amount in walletAddress is ${balance.bch}bch or ${balance.sat}sats`);
 
+// listen to all reaper transfers
+reapersContract.on("Transfer", (from, to, amount, event) => {
+  console.log(`${ from } sent ${ formatEther(amount) } to ${ to}`);
+  console.log(event)
+});
 
 async function bridgeNFTs(listNftNumbers, destinationAddress, sbchTxid){
   if(balance.sat < 1000) throw new Error("Not enough BCH to make the transaction!");
