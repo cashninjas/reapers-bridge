@@ -1,11 +1,15 @@
 import { TestNetWallet, Wallet, TokenMintRequest } from "mainnet-js";
 import { bigIntToVmNumber, binToHex, hexToBin } from '@bitauth/libauth';
+import { JsonRpcProvider } from "ethers";
 import 'dotenv/config'
 
 const tokenId = process.env.TOKENID;
 const network =  process.env.NETWORK;
 const derivationPathAddress = process.env.DERIVATIONPATH;
 const seedphrase = process.env.SEEDPHRASE;
+
+// initialize SBCH network provider
+let provider = new JsonRpcProvider('https://smartbch.greyh.at');
 
 // mainnet-js generates m/44'/0'/0'/0/0 by default so have to switch it
 const walletClass = network == "mainnet" ? Wallet : TestNetWallet;
