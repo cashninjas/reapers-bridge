@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@bitauth/libauth": "^2.0.0-alpha.8",
+    "@bitauth/libauth": "^2.0.0",
     "dotenv": "^16.3.1",
     "ethers": "^6.11.1",
-    "mainnet-js": "^2.2.5"
+    "mainnet-js": "^2.3.9"
   }
 }
