@@ -8,6 +8,9 @@ const tokenId = process.env.TOKENID;
 const network =  process.env.NETWORK;
 const derivationPathAddress = process.env.DERIVATIONPATH;
 const seedphrase = process.env.SEEDPHRASE;
+const contractAddress = process.env.CONTRACTADDR;
+
+let nftsBridged = 0;
 
 // initialize SBCH network provider
 let provider = new JsonRpcProvider('https://smartbch.greyh.at');
@@ -28,28 +31,25 @@ reapersContract.on("Transfer", (from, to, amount, event) => {
   console.log(event)
 });
 
-async function bridgeNFTs(listNftNumbers, destinationAddress, sbchTxid){
-  if(balance.sat < 1000) throw new Error("Not enough BCH to make the transaction!");
-
-  // list outputs for bridging tx
-  const outputs = [];
-
-  listNftNumbers.forEach(nftNumber => {
-    const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
-    const nftCommitment = binToHex(vmNumber);
-    const mintNftOutput = new TokenMintRequest({
-      cashaddr: destinationAddress,
-      commitment: nftCommitment,
-      capability: NFTCapability.none,
-      value: 1000,
+async function bridgeNFTs(listNftNumbers, destinationAddress){
+  try{
+    // create bridging transaction
+    const mintRequests = [];
+    listNftNumbers.forEach(nftNumber => {
+      const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
+      const nftCommitment = binToHex(vmNumber);
+      const mintNftOutput = new TokenMintRequest({
+        cashaddr: destinationAddress,
+        commitment: nftCommitment,
+        capability: NFTCapability.none,
+        value: 1000,
+      })
+      mintRequests.push(mintNftOutput);
     })
-    outputs.push(mintNftOutput);
-  })
-
-  const sbchTxidBin = hexToBin(sbchTxid);
-  const opReturn = Buffer.from(sbchTxidBin);
-  outputs.push(opReturn);
-
-  const { txId } = await wallet.send(outputs);
-  console.log(txId)
+    const { txId } = await wallet.tokenMint( tokenId, mintRequests );
+    console.log(txId)
+    nftsBridged += listNftNumbers.length;
+  } catch (error) {
+    console.log(error)
+  }
 }
