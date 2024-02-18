@@ -46,7 +46,7 @@ export async function getRecentBridgeInfo(){
 
 export async function checkAmountBridgedDb() {
   try {
-    const result = await pool.query(`SELECT * FROM bridge WHERE txIdBCH NOT NULL;`);
+    const result = await pool.query(`SELECT * FROM bridge WHERE txIdBCH IS NOT NULL;`);
     return result.rows.length;
   } catch (e) {
     console.log(e);

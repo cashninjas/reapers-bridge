@@ -71,9 +71,9 @@ reapersContract.on("Transfer", (from, to, amount, event) => {
   const timeBurned = new Date().toISOString();
   const burnInfo = {
     timeBurned,
-    txIdSmartBCH: "",
-    nftNumber: 1,
-    sbchOriginAddress: ""
+    txIdSmartBCH: event?.log?.transactionHash,
+    nftNumber: Number(event.args[2]),
+    sbchOriginAddress: event.args[0]
   }
   writeInfoToDb(burnInfo);
 });
