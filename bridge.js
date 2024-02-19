@@ -1,6 +1,6 @@
 import { TestNetWallet, Wallet, TokenMintRequest } from "mainnet-js";
 import { bigIntToVmNumber, binToHex } from '@bitauth/libauth';
-import { JsonRpcProvider, formatEther, ethers } from "ethers";
+import { ethers } from "ethers";
 import { writeInfoToDb, getAllBridgeInfo, getRecentBridgeInfo, checkAmountBridgedDb, addBridgeInfoToNFT } from "./database.js"
 import abi from "./abi.json" assert { type: 'json' }
 import express from "express";
@@ -52,7 +52,7 @@ app.get("/recent", async (req, res) => {
 });
 
 // initialize SBCH network provider
-let provider = new JsonRpcProvider('https://smartbch.greyh.at');
+let provider = new ethers.providers.JsonRpcProvider('https://smartbch.greyh.at');
 // initilize reapers contract
 const reapersContract = new ethers.Contract(contractAddress, abi, provider);
 
@@ -65,15 +65,17 @@ console.log(`Bch amount in walletAddress is ${balance.bch}bch or ${balance.sat}s
 
 // listen to all reaper transfers
 reapersContract.on("Transfer", (from, to, amount, event) => {
-  console.log(`${ from } sent ${ formatEther(amount) } to ${ to}`);
+  const erc721numberHex = event.args[2]?._hex
+  const nftNumber = parseInt(erc721numberHex, 16);
+  console.log(`${ from } sent reaper #${nftNumber} to ${ to }`);
   console.log(event)
 
   const timeBurned = new Date().toISOString();
   const burnInfo = {
     timeBurned,
-    txIdSmartBCH: event?.log?.transactionHash,
-    nftNumber: Number(event.args[2]),
-    sbchOriginAddress: event.args[0]
+    txIdSmartBCH: event?.transactionHash,
+    nftNumber,
+    sbchOriginAddress: from
   }
   writeInfoToDb(burnInfo);
 });
