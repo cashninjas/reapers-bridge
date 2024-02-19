@@ -83,7 +83,8 @@ async function bridgeNFTs(listNftNumbers, destinationAddress){
     // create bridging transaction
     const mintRequests = [];
     listNftNumbers.forEach(nftNumber => {
-      const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
+      // vm numbers start counting from zero
+      const vmNumber = bigIntToVmNumber(BigInt(nftNumber) - 1n);
       const nftCommitment = binToHex(vmNumber);
       const mintNftOutput = new TokenMintRequest({
         cashaddr: destinationAddress,
