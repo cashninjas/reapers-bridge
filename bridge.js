@@ -1,7 +1,7 @@
 import { TestNetWallet, Wallet, TokenMintRequest } from "mainnet-js";
 import { bigIntToVmNumber, binToHex } from '@bitauth/libauth';
 import { ethers } from "ethers";
-import { writeInfoToDb, getAllBridgeInfo, getRecentBridgeInfo, checkAmountBridgedDb, addBridgeInfoToNFT } from "./database.js"
+import { writeInfoToDb, getAllBridgeInfo, getRecentBridgeInfo, checkAmountBridgedDb, addBridgeInfoToNFT, bridgeInfoEthAddress } from "./database.js"
 import abi from "./abi.json" assert { type: 'json' }
 import express from "express";
 import cors from "cors";
@@ -46,6 +46,15 @@ app.get("/recent", async (req, res) => {
   const infoRecentBridged = await getRecentBridgeInfo();
   if (infoRecentBridged) {
     res.json(infoRecentBridged);
+  } else {
+    res.status(404).send();
+  }
+});
+
+app.get("/address/:originAddress", async (req, res) => {
+  const infoAddress = await bridgeInfoEthAddress(req.params.originAddress);
+  if (infoAddress) {
+    res.json(infoAddress);
   } else {
     res.status(404).send();
   }

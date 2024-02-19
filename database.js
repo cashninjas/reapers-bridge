@@ -28,7 +28,7 @@ export async function writeInfoToDb(infoObj){
 
 export async function getAllBridgeInfo(){
   try {
-    const result = await pool.query(`SELECT * FROM bridge;`);
+    const result = await pool.query(`SELECT * FROM bridge ORDER BY id DESC;`);
     return result.rows;
   } catch (e) {
     console.log(e);
@@ -37,7 +37,16 @@ export async function getAllBridgeInfo(){
 
 export async function getRecentBridgeInfo(){
   try {
-    const result = await pool.query(`SELECT * FROM bridge DESC LIMIT 20;`);
+    const result = await pool.query(`SELECT * FROM bridge ORDER BY id DESC LIMIT 20;`);
+    return result.rows;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+export async function bridgeInfoEthAddress(ethAddress){
+  try {
+    const result = await pool.query(`SELECT * FROM bridge WHERE sbchOriginAddress='${ethAddress}';`);
     return result.rows;
   } catch (e) {
     console.log(e);
