@@ -20,6 +20,7 @@ if(amountBridgedDb){
   console.log(`Read amountBridgedDb on restart, setting nftsBridged to ${amountBridgedDb}`);
   nftsBridged = amountBridgedDb;
 }
+let bridgingNft = false;
 
 // set up express for endpoints
 const app = express();
@@ -32,6 +33,19 @@ app.use(express.json()); //req.body
 app.get('/', (req, res) => {
   res.json({nftsBridged});
 })
+
+apiRouter.post("/signbridging", async (req, res) => {
+  try{
+    const { sbchOriginAddress, destinationAddress, signature } = req.body;
+    const signingAddress = ethers.utils.verifyMessage( sbchOriginAddress , signature );
+    if(signingAddress != sbchOriginAddress) return
+    const success = tryBridging(sbchOriginAddress,destinationAddress);
+    if(success) res.status(200).send();
+    else res.status(404).send();
+  } catch(error){
+    error
+  }
+});
 
 app.get("/all", async (req, res) => {
   const infoAllBridged = await getAllBridgeInfo();
@@ -88,6 +102,28 @@ reapersContract.on("Transfer", (from, to, amount, event) => {
   }
   writeInfoToDb(burnInfo);
 });
+
+async function tryBridging(sbchOriginAddress, destinationAddress){
+  // if bridging is already happening, wait 2 seconds
+  if(bridgingNft) {
+    await new Promise(r => setTimeout(r, 2000));
+    return await tryBridging(sbchOriginAddress, destinationAddress);
+  } else {
+    try{
+      sendingTransaction = true;
+      const infoAddress = await bridgeInfoEthAddress(sbchOriginAddress);
+      const listNftNumbers = infoAddress.filter(item => !item.timeBridged)
+      if(!listNftNumbers.length) throw("empty list!")
+      bridgeNFTs(listNftNumbers, destinationAddress);
+      sendingTransaction = false;
+      return true
+    } catch (error) { 
+      console.log(error);
+      sendingTransaction = false;
+      return true
+    }
+  }
+}
 
 async function bridgeNFTs(listNftNumbers, destinationAddress){
   try{
