@@ -39,7 +39,7 @@ app.post("/signbridging", async (req, res) => {
     const { sbchOriginAddress, destinationAddress, signature } = req.body;
     const signingAddress = ethers.utils.verifyMessage( sbchOriginAddress , signature );
     if(signingAddress != sbchOriginAddress) return
-    const txid = tryBridging(sbchOriginAddress,destinationAddress);
+    const txid = await tryBridging(sbchOriginAddress,destinationAddress);
     if(txid) res.json({txid});
     else res.status(404).send();
   } catch(error){
