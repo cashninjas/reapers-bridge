@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
   res.json({nftsBridged});
 })
 
-apiRouter.post("/signbridging", async (req, res) => {
+app.post("/signbridging", async (req, res) => {
   try{
     const { sbchOriginAddress, destinationAddress, signature } = req.body;
     const signingAddress = ethers.utils.verifyMessage( sbchOriginAddress , signature );
@@ -110,16 +110,17 @@ async function tryBridging(sbchOriginAddress, destinationAddress){
     return await tryBridging(sbchOriginAddress, destinationAddress);
   } else {
     try{
-      sendingTransaction = true;
+      bridgingNft = true;
       const infoAddress = await bridgeInfoEthAddress(sbchOriginAddress);
-      const listNftNumbers = infoAddress.filter(item => !item.timeBridged)
+      const listNftItems = infoAddress.filter(item => !item.timeBridged)
+      const listNftNumbers = listNftItems.map(item => item.nftnumber)
       if(!listNftNumbers.length) throw("empty list!")
       bridgeNFTs(listNftNumbers, destinationAddress);
-      sendingTransaction = false;
+      bridgingNft = false;
       return true
     } catch (error) { 
       console.log(error);
-      sendingTransaction = false;
+      bridgingNft = false;
       return true
     }
   }
@@ -136,7 +137,7 @@ async function bridgeNFTs(listNftNumbers, destinationAddress){
       const mintNftOutput = new TokenMintRequest({
         cashaddr: destinationAddress,
         commitment: nftCommitment,
-        capability: NFTCapability.none,
+        capability: "none",
         value: 1000,
       })
       mintRequests.push(mintNftOutput);
