@@ -39,8 +39,8 @@ app.post("/signbridging", async (req, res) => {
     const { sbchOriginAddress, destinationAddress, signature } = req.body;
     const signingAddress = ethers.utils.verifyMessage( sbchOriginAddress , signature );
     if(signingAddress != sbchOriginAddress) return
-    const success = tryBridging(sbchOriginAddress,destinationAddress);
-    if(success) res.status(200).send();
+    const txid = tryBridging(sbchOriginAddress,destinationAddress);
+    if(txid) res.json({txid});
     else res.status(404).send();
   } catch(error){
     error
@@ -87,12 +87,13 @@ const balance = await wallet.getBalance();
 console.log(`Bch amount in walletAddress is ${balance.bch}bch or ${balance.sat}sats`);
 
 // listen to all reaper transfers
+const burnAddress = "0x000000000000000000000000000000000000dEaD"
+const burnAddress2 = "0x0000000000000000000000000000000000000000"
 reapersContract.on("Transfer", (from, to, amount, event) => {
   const erc721numberHex = event.args[2]?._hex
   const nftNumber = parseInt(erc721numberHex, 16);
-  console.log(`${ from } sent reaper #${nftNumber} to ${ to }`);
-  console.log(event)
-
+  if(to != burnAddress && to !=burnAddress2) return
+  console.log(`${ from } burnt reaper #${nftNumber}`);
   const timeBurned = new Date().toISOString();
   const burnInfo = {
     timeBurned,
@@ -112,16 +113,16 @@ async function tryBridging(sbchOriginAddress, destinationAddress){
     try{
       bridgingNft = true;
       const infoAddress = await bridgeInfoEthAddress(sbchOriginAddress);
-      const listNftItems = infoAddress.filter(item => !item.timeBridged)
+      const listNftItems = infoAddress.filter(item => !item.timebridged)
       const listNftNumbers = listNftItems.map(item => item.nftnumber)
       if(!listNftNumbers.length) throw("empty list!")
-      bridgeNFTs(listNftNumbers, destinationAddress);
+      const txid = await bridgeNFTs(listNftNumbers, destinationAddress);
       bridgingNft = false;
-      return true
+      return txid
     } catch (error) { 
       console.log(error);
       bridgingNft = false;
-      return true
+      return
     }
   }
 }
@@ -156,6 +157,7 @@ async function bridgeNFTs(listNftNumbers, destinationAddress){
       }
       addBridgeInfoToNFT(nftNumber, bridgeInfo);
     })
+    return txId
   } catch (error) {
     console.log(error)
   }
