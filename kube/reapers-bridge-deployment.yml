@@ -48,6 +48,8 @@ spec:
           value: "945555908fa8f208b6a6588004037b886f70ab1641bae6720f2862afb7af7983"
         - name: CONTRACTADDR
           value: "0x48973dbAC0d46B939CD12A7250eFBA965e8a8cf2"
+        - name: SERVER_URL
+          value: "api.reapers.cash"
         image: zquestz/reapers-bridge:latest
         imagePullPolicy: Always
         name: reapers-bridge
