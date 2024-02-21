@@ -37,9 +37,9 @@ app.get('/', (req, res) => {
 app.post("/signbridging", async (req, res) => {
   try{
     const { sbchOriginAddress, destinationAddress, signature } = req.body;
-    const signingAddress = ethers.utils.verifyMessage( sbchOriginAddress , signature );
+    const signingAddress = ethers.utils.verifyMessage( destinationAddress , signature );
     if(signingAddress != sbchOriginAddress) return
-    const txid = await tryBridging(sbchOriginAddress,destinationAddress);
+    const txid = await tryBridging(sbchOriginAddress, destinationAddress, signature);
     if(txid) res.json({txid});
     else res.status(404).send();
   } catch(error){
@@ -104,11 +104,11 @@ reapersContract.on("Transfer", (from, to, amount, event) => {
   writeInfoToDb(burnInfo);
 });
 
-async function tryBridging(sbchOriginAddress, destinationAddress){
+async function tryBridging(sbchOriginAddress, destinationAddress, signatureProof){
   // if bridging is already happening, wait 2 seconds
   if(bridgingNft) {
     await new Promise(r => setTimeout(r, 2000));
-    return await tryBridging(sbchOriginAddress, destinationAddress);
+    return await tryBridging(sbchOriginAddress, destinationAddress, signatureProof);
   } else {
     try{
       bridgingNft = true;
@@ -116,7 +116,7 @@ async function tryBridging(sbchOriginAddress, destinationAddress){
       const listNftItems = infoAddress.filter(item => !item.timebridged)
       const listNftNumbers = listNftItems.map(item => item.nftnumber)
       if(!listNftNumbers.length) throw("empty list!")
-      const txid = await bridgeNFTs(listNftNumbers, destinationAddress);
+      const txid = await bridgeNFTs(listNftNumbers, destinationAddress, signatureProof);
       bridgingNft = false;
       return txid
     } catch (error) { 
@@ -127,7 +127,7 @@ async function tryBridging(sbchOriginAddress, destinationAddress){
   }
 }
 
-async function bridgeNFTs(listNftNumbers, destinationAddress){
+async function bridgeNFTs(listNftNumbers, destinationAddress, signatureProof){
   try{
     // create bridging transaction
     const mintRequests = [];
@@ -152,6 +152,7 @@ async function bridgeNFTs(listNftNumbers, destinationAddress){
     listNftNumbers.forEach(nftNumber => {
       const bridgeInfo = {
         timeBridged,
+        signatureProof,
         txIdBCH: txId,
         destinationAddress
       }

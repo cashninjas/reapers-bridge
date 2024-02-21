@@ -6,5 +6,6 @@ CREATE TABLE bridge(
   nftNumber integer,
   timeBridged varchar(40),
   txIdBCH varchar(80),
-  destinationAddress varchar(80)
+  destinationAddress varchar(80),
+  signatureProof varchar(140)
 );
