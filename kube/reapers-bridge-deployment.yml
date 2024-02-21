@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  labels:
+    service: reapers-bridge
+  name: reapers-bridge
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      service: reapers-bridge
+  template:
+    metadata:
+      labels:
+        service: reapers-bridge
+    spec:
+      containers:
+      - env:
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: reapers-bridge-postgres
+              key: user
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: reapers-bridge-postgres
+              key: password
+        - name: SEEDPHRASE
+          valueFrom:
+            secretKeyRef:
+              name: reapers-bridge-postgres
+              key: seedphrase
+        - name: PGHOST
+          value: reapers-bridge-postgres
+        - name: PGPORT
+          value: "5832"
+        - name: PGDATABASE
+          value: "bridge"
+        - name: DERIVATIONPATH
+          value: "m/44'/145'/0'/0/0"
+        - name: NETWORK
+          value: "mainnet"
+        - name: TOKENID
+          value: "945555908fa8f208b6a6588004037b886f70ab1641bae6720f2862afb7af7983"
+        - name: CONTRACTADDR
+          value: "0x48973dbAC0d46B939CD12A7250eFBA965e8a8cf2"
+        image: zquestz/reapers-bridge:latest
+        imagePullPolicy: Always
+        name: reapers-bridge
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: "100Mi"
+      restartPolicy: Always
