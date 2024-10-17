@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model bridge {
+  id                 Int     @id @default(autoincrement())
+  timeburned         String? @db.VarChar(40)
+  txidsmartbch       String? @db.VarChar(80)
+  sbchoriginaddress  String? @db.VarChar(80)
+  nftnumber          Int     @unique(map: "unique_nftnumber")
+  timebridged        String? @db.VarChar(40)
+  txidbch            String? @db.VarChar(80)
+  destinationaddress String? @db.VarChar(80)
+  signatureproof     String? @db.VarChar(140)
+}
