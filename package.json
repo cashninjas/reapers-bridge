@@ -5,8 +5,8 @@
   "main": "bridge.js",
   "type": "module",
   "scripts": {
-    "start": "node bridge.js",
-    "dev": "NODE_ENV=development node bridge.js"
+    "start": "tsx bridge.ts",
+    "dev": "NODE_ENV=development tsx bridge.ts"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +17,11 @@
     "ethers": "^5.7.2",
     "express": "^4.18.2",
     "mainnet-js": "^2.3.9",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "tsx": "^4.19.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0"
   }
 }

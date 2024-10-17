@@ -39,7 +39,7 @@ By re-issuing the NFTs as they are burned, there never exists more than the maxi
 
 The home endpoint simply provides the number of `nftsBridged`, the `all` endpoint provides data of all burned and bridged NFTs, `/recent` only provides the data of the latest 20 items.
 `/signbridging` is the POST endpoint for users to provide their cashtokens payout address together with proof authorizing the bridging to that address.
-Lastly, `/address/:originAddress` provides all the minting and burning info with a specific `originAddress`
+Lastly, `/address/:originAddress` provides all the minting and burning info with a specific `originAddress`.
 
 ## Installation
 
@@ -76,5 +76,5 @@ npm start
 or 
 
 ```bash
-node bridge.js
+tsx bridge.ts
 ```

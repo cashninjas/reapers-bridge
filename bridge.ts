@@ -1,7 +1,14 @@
-import { TestNetWallet, Wallet, TokenMintRequest } from "mainnet-js";
+import { TestNetWallet, Wallet, TokenMintRequest, BalanceResponse } from "mainnet-js";
 import { bigIntToVmNumber, binToHex } from '@bitauth/libauth';
 import { ethers } from "ethers";
-import { writeInfoToDb, getAllBridgeInfo, getRecentBridgeInfo, checkAmountBridgedDb, addBridgeInfoToNFT, bridgeInfoEthAddress } from "./database.js"
+import {
+  writeInfoToDb,
+  getAllBridgeInfo,
+  getRecentBridgeInfo,
+  checkAmountBridgedDb,
+  addBridgeInfoToNFT,
+  bridgeInfoEthAddress
+} from "./database.js"
 import abi from "./abi.json" assert { type: 'json' }
 import express from "express";
 import cors from "cors";
@@ -13,6 +20,10 @@ const derivationPathAddress = process.env.DERIVATIONPATH;
 const seedphrase = process.env.SEEDPHRASE;
 const serverUrl = process.env.SERVER_URL;
 const contractAddress = process.env.CONTRACTADDR;
+
+if(!tokenId || !seedphrase || !contractAddress) throw new Error("Missing .env variables!")
+
+const sbchNetworkProvider = 'https://smartbch.greyh.at'
 
 let nftsBridged = 0;
 const amountBridgedDb = await checkAmountBridgedDb();
@@ -75,7 +86,7 @@ app.get("/address/:originAddress", async (req, res) => {
 });
 
 // initialize SBCH network provider
-let provider = new ethers.providers.JsonRpcProvider('https://smartbch.greyh.at');
+let provider = new ethers.providers.JsonRpcProvider(sbchNetworkProvider);
 // initilize reapers contract
 const reapersContract = new ethers.Contract(contractAddress, abi, provider);
 
@@ -83,7 +94,7 @@ const reapersContract = new ethers.Contract(contractAddress, abi, provider);
 const walletClass = network == "mainnet" ? Wallet : TestNetWallet;
 const wallet = await walletClass.fromSeed(seedphrase, derivationPathAddress);
 console.log(`wallet address: ${wallet.getDepositAddress()}`);
-const balance = await wallet.getBalance();
+const balance = await wallet.getBalance() as BalanceResponse;
 console.log(`Bch amount in walletAddress is ${balance.bch}bch or ${balance.sat}sats`);
 
 // listen to all reaper transfers
@@ -104,7 +115,9 @@ reapersContract.on("Transfer", (from, to, amount, event) => {
   writeInfoToDb(burnInfo);
 });
 
-async function tryBridging(sbchOriginAddress, destinationAddress, signatureProof){
+async function tryBridging(
+  sbchOriginAddress:string, destinationAddress:string, signatureProof:string
+){
   // if bridging is already happening, wait 2 seconds
   if(bridgingNft) {
     await new Promise(r => setTimeout(r, 2000));
@@ -127,10 +140,12 @@ async function tryBridging(sbchOriginAddress, destinationAddress, signatureProof
   }
 }
 
-async function bridgeNFTs(listNftNumbers, destinationAddress, signatureProof){
+async function bridgeNFTs(
+  listNftNumbers:number[], destinationAddress:string, signatureProof: string
+){
   try{
     // create bridging transaction
-    const mintRequests = [];
+    const mintRequests:TokenMintRequest[] = [];
     listNftNumbers.forEach(nftNumber => {
       // vm numbers start counting from zero
       const vmNumber = bigIntToVmNumber(BigInt(nftNumber) - 1n);
@@ -143,7 +158,7 @@ async function bridgeNFTs(listNftNumbers, destinationAddress, signatureProof){
       })
       mintRequests.push(mintNftOutput);
     })
-    const { txId } = await wallet.tokenMint( tokenId, mintRequests );
+    const { txId } = await wallet.tokenMint( tokenId as string, mintRequests );
     console.log(txId)
     nftsBridged += listNftNumbers.length;
     // create db entries
