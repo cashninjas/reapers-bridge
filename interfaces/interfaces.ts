@@ -11,4 +11,3 @@ export interface BridgedInfoObj {
   destinationAddress: string
   signatureProof: string
 }
-

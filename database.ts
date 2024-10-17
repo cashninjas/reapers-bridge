@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { BridgedInfoObj, BurnInfo } from './interfaces/interfaces';
+import { BridgedInfoObj, BurnInfo } from './interfaces/interfaces.js';
 
 const prisma = new PrismaClient()
 
