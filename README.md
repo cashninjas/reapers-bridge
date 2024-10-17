@@ -1,12 +1,12 @@
 # Reapers Bridge
 
-One-way bridge for NFTs (ERC721) from SmartBCH (EVM) to CashTokens
+One-way bridge for NFTs (ERC721) from SmartBCH (EVM) to CashTokens on Bitcoin Cash.
 
 ## Outline
 
 To bridge the NFTs the user first sends them to a burn address.
 Then, the user provides a cashtokens payout address with a proof of burn to the server.
-The server the re-mint the NFT as CashToken to the provided address
+The server the re-mint the NFT as CashToken to the provided address.
 
 ## Details
 
@@ -17,29 +17,29 @@ The matching front-end code can be found in the repo for the reapers website.
 
 ## Advantages
 
-### batch briding
+### Batch bridging
 
-Many NFTs can be batch burned together using the Mantra bundle transfer, the NFTs will also be re-issued together to the payout address in one transaction.
+Many NFTs can be batch burned together using the Mantra bundle transfer, the NFTs will also be re-issued together to the payout address in one transaction. This makes it easier to follow and check batch bridging on-chain and it saves on gas fees on the SmartBCH side and also on the Bitcoin Cash side.
 
-### auditable
+### Auditable
 
 Because of the public API endpoints anyone can see all the burning and bridging that has taken place. For each bridged NFT there is a `signatureProof` which is the signature from the origin address signing the cashtokens receiving address. This proves the bridging destination is the one provided by the user.
 
-### reflective supply
+### Reflective supply
 
 By re-issuing the NFTs as they are burned, there never exists more than the maximum supply of NFTs in circulation. Fetching the supply on CashTokens will get you the amount of NFTs that have been bridged.
 
 ## API Endpoints
 
-- /
-- /all
-- /recent
-- /signbridging
-- /address/:originAddress
+- `/`
+- `/all`
+- `/recent`
+- `/signbridging`
+- `/address/:originAddress`
 
-The home endpoint simply provides the number of `nftsBridged`, the `all` endpoint provides data of all burned & bridged NFTs, /recent only of the latest 20 items.
-/signbridging is the POST endpoint for users to provide their cashtokens payout address together with proof authorizing the bridging to that address.
-Lastly, /address/:originAddress provides all the minting and burning info with a specific `originAddress`
+The home endpoint simply provides the number of `nftsBridged`, the `all` endpoint provides data of all burned and bridged NFTs, `/recent` only provides the data of the latest 20 items.
+`/signbridging` is the POST endpoint for users to provide their cashtokens payout address together with proof authorizing the bridging to that address.
+Lastly, `/address/:originAddress` provides all the minting and burning info with a specific `originAddress`
 
 ## Installation
 
@@ -48,9 +48,9 @@ git git@github.com:mr-zwets/reapers-bridge.git
 npm install
 ```
 
-## Usage
+## Configuration
 
-example .env
+Example `.env` file
 
 ```bash
 SEEDPHRASE=""
@@ -65,4 +65,16 @@ PGUSER=
 PGDATABASE=
 PGPASSWORD=
 PGPORT=5432
+```
+
+## Usage
+
+```bash
+npm start
+```
+
+or 
+
+```bash
+node bridge.js
 ```
