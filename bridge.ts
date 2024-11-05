@@ -2,7 +2,7 @@ import { TestNetWallet, Wallet, TokenMintRequest, BalanceResponse } from "mainne
 import { bigIntToVmNumber, binToHex } from '@bitauth/libauth';
 import { ethers } from "ethers";
 import {
-  writeInfoToDb,
+  writeBurnInfoToDb,
   getAllBridgeInfo,
   getRecentBridgeInfo,
   checkAmountBridgedDb,
@@ -12,8 +12,10 @@ import {
 import abi from "./abi.json" assert { type: 'json' }
 import express from "express";
 import cors from "cors";
-import 'dotenv/config'
+import * as dotenv from "dotenv";
+import { BurnInfo } from "./interfaces/interfaces.js";
 
+dotenv.config();
 const tokenId = process.env.TOKENID;
 const network =  process.env.NETWORK;
 const derivationPathAddress = process.env.DERIVATIONPATH;
@@ -106,13 +108,13 @@ reapersContract.on("Transfer", (from, to, amount, event) => {
   if(to != burnAddress && to !=burnAddress2) return
   console.log(`${ from } burnt reaper #${nftNumber}`);
   const timeBurned = new Date().toISOString();
-  const burnInfo = {
+  const burnInfo:BurnInfo = {
     timeBurned,
     txIdSmartBCH: event?.transactionHash,
     nftNumber,
     sbchOriginAddress: from
   }
-  writeInfoToDb(burnInfo);
+  writeBurnInfoToDb(burnInfo);
 });
 
 async function tryBridging(
@@ -126,9 +128,9 @@ async function tryBridging(
     try{
       bridgingNft = true;
       const infoAddress = await bridgeInfoEthAddress(sbchOriginAddress);
-      const listNftItems = infoAddress.filter(item => !item.timebridged)
-      const listNftNumbers = listNftItems.map(item => item.nftnumber)
-      if(!listNftNumbers.length) throw("empty list!")
+      const listNftItems = infoAddress?.filter(item => !item.timebridged)
+      const listNftNumbers = listNftItems?.map(item => item.nftnumber)
+      if(!listNftNumbers?.length) throw(`Empty list of NftNumbers that can be bridged for sbch address ${sbchOriginAddress}`)
       const txid = await bridgeNFTs(listNftNumbers, destinationAddress, signatureProof);
       bridgingNft = false;
       return txid
@@ -158,7 +160,7 @@ async function bridgeNFTs(
       })
       mintRequests.push(mintNftOutput);
     })
-    const { txId } = await wallet.tokenMint( tokenId as string, mintRequests );
+    const { txId } = await wallet.tokenMint( tokenId as string, mintRequests ) ;
     console.log(txId)
     nftsBridged += listNftNumbers.length;
     // create db entries
@@ -168,7 +170,7 @@ async function bridgeNFTs(
       const bridgeInfo = {
         timeBridged,
         signatureProof,
-        txIdBCH: txId,
+        txIdBCH: txId as string,
         destinationAddress
       }
       addBridgeInfoToNFT(nftNumber, bridgeInfo);

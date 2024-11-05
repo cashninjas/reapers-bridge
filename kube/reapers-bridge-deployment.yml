@@ -19,6 +19,11 @@ spec:
     spec:
       containers:
       - env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: reapers-bridge-postgres
+              key: database_url
         - name: PGUSER
           valueFrom:
             secretKeyRef:
