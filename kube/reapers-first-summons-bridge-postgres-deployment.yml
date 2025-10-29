@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  labels:
+    service: reapers-first-summons-bridge-postgres
+  name: reapers-first-summons-bridge-postgres
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      service: reapers-first-summons-bridge-postgres
+  template:
+    metadata:
+      labels:
+        service: reapers-first-summons-bridge-postgres
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: reapers-first-summons-bridge-postgres
+                  key: password
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: reapers-first-summons-bridge-postgres
+                  key: user
+            - name: PGDATA
+              value: /var/lib/postgresql/data
+            - name: POSTGRES_DB
+              value: bridge
+          image: postgres:17
+          name: postgres
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: reapers-first-summons-bridge-postgres-data
+          resources:
+            requests:
+              memory: "256Mi"
+      restartPolicy: Always
+      volumes:
+        - name: reapers-first-summons-bridge-postgres-data
+          gcePersistentDisk:
+            pdName: reapers-first-summons-bridge-postgres-data
+            fsType: ext4

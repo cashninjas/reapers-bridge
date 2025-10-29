@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: reapers-first-summons-bridge-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - hosts:
+        - summonsapi.reapers.cash
+      secretName: reapers-first-summons-bridge-tls
+  defaultBackend:
+    service:
+      name: reapers-first-summons-bridge
+      port:
+        number: 988
+  rules:
+    - host: summonsapi.reapers.cash
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: reapers-first-summons-bridge
+                port:
+                  number: 988

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  labels:
+    service: reapers-first-summons-bridge
+  name: reapers-first-summons-bridge
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      service: reapers-first-summons-bridge
+  template:
+    metadata:
+      labels:
+        service: reapers-first-summons-bridge
+    spec:
+      containers:
+        - env:
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: reapers-first-summons-bridge-postgres
+                  key: user
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: reapers-first-summons-bridge-postgres
+                  key: password
+            - name: SEEDPHRASE
+              valueFrom:
+                secretKeyRef:
+                  name: reapers-first-summons-bridge-postgres
+                  key: seedphrase
+            - name: PGHOST
+              value: reapers-first-summons-bridge-postgres
+            - name: PGPORT
+              value: "6032"
+            - name: PGDATABASE
+              value: "bridge"
+            - name: DERIVATIONPATH
+              value: "m/44'/145'/0'/0/0"
+            - name: NETWORK
+              value: "mainnet"
+            - name: TOKENID
+              value: "fafc4eee40d33b6a7eb50df2da3167ac6d226b19f2d7302664a718ec8d973c64"
+            - name: CONTRACTADDR
+              value: "0x1db8975defdfba58979c26085031f0dc9db24787"
+            - name: SERVER_URL
+              value: "summonsapi.reapers.cash"
+          image: zquestz/reapers-bridge:latest
+          imagePullPolicy: Always
+          name: reapers-first-summons-bridge
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "100Mi"
+      restartPolicy: Always

@@ -33,7 +33,7 @@ spec:
           value: /var/lib/postgresql/data
         - name: POSTGRES_DB
           value: bridge
-        image: postgres
+        image: postgres:16
         name: postgres
         volumeMounts:
         - mountPath: /var/lib/postgresql/data

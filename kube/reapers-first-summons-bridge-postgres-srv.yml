@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: reapers-first-summons-bridge-postgres
+  namespace: default
+spec:
+  ports:
+    - port: 6032
+      targetPort: 5432
+  selector:
+    service: reapers-first-summons-bridge-postgres
